@@ -12,3 +12,6 @@
 - Go to the Dockerfile's location:
      - docker build . -t <image_name>
      - docker run -p 80:80 <image_name>
+
+### Step3 Opening The App
+- Copy the EC2 instances public ip address and paste it into your web browser.
