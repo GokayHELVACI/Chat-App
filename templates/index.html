@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesajlaşma Arayüzü</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <style>
+        .button-30 {
+            align-items: center;
+            appearance: none;
+            background-color: #FCFCFD;
+            border-radius: 100px;
+            border-width: 0;
+            box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+            box-sizing: border-box;
+            color: #36395A;
+            cursor: pointer;
+            display: inline-flex;
+            font-family: "JetBrains Mono", monospace;
+            height: 48px;
+            justify-content: center;
+            line-height: 1;
+            list-style: none;
+            overflow: hidden;
+            padding-left: 16px;
+            padding-right: 16px;
+            position: relative;
+            text-align: left;
+            text-decoration: none;
+            transition: box-shadow .15s, transform .15s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            white-space: nowrap;
+            will-change: box-shadow, transform;
+            font-size: 18px;
+        }
+
+        .button-30:focus {
+            box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+        }
+
+        .button-30:hover {
+            box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+            transform: translateY(-2px);
+        }
+
+        .button-30:active {
+            box-shadow: #D6D6E7 0 3px 7px inset;
+            transform: translateY(2px);
+        }
+
+        .container {
+            width: 80vw;
+            height: 80vh;
+            background-color: lightblue;
+            /* İsteğe bağlı, arka plan rengini değiştirebilirsiniz */
+            align-items: flex-end;
+            margin: auto;
+        }
+
+        .message-container {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 70%;
+            align-self: flex-end;
+        }
+
+        .sender {
+            font-weight: bold;
+        }
+
+        #messages {
+            width: 80vw;
+            height: 80vh;
+            background-color: rgb(219, 238, 244);
+            /* İsteğe bağlı, arka plan rengini değiştirebilirsiniz */
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            /* Dikey kaydırma çubuğunu otomatik olarak ekle */
+        }
+
+        .sent-message {
+            background-color: #dcf8c6;
+            /* Light green for sent messages */
+            align-self: flex-end;
+            /* Align sent messages to the right */
+        }
+
+        .received-message {
+            background-color: #e2e2e2;
+            /* Light gray for received messages */
+            align-self: flex-start;
+            /* Align received messages to the left */
+        }
+
+        .input {
+
+            position: relative;
+
+            font-size: 0.1em;
+
+            background: linear-gradient(21deg, #10abff, #1beabd);
+
+            padding: 3px;
+
+            display: inline-block;
+
+            border-radius: 9999em;
+
+            *:not(span) {
+                position: relative;
+                display: inherit;
+                border-radius: inherit;
+                margin: 0;
+                border: none;
+                outline: none;
+                padding: 0.725em;
+                z-index: 1;
+
+                &:focus+span {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            span {
+
+                transform: scale(.993, .94);
+                transition: transform .5s, opacity .25s;
+                opacity: 0;
+
+                position: absolute;
+                z-index: 0;
+                margin: 4px;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                border-radius: inherit;
+                pointer-events: none;
+
+                box-shadow: inset 0 0 0 3px #fff,
+                    0 0 0 4px #fff,
+                    3px -3px 30px #1beabd,
+                    -3px 3px 30px #10abff;
+            }
+
+        }
+
+        input {
+            font-family: inherit;
+            line-height: inherit;
+            color: #2e3750;
+            min-width: 12em;
+        }
+
+        ::placeholder {
+            color: #cbd0d5;
+        }
+
+        html::after {
+            content: '';
+            background: linear-gradient(21deg, #10abff, #1beabd);
+            height: 3px;
+            width: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+
+    <script>
+        var userId; // Variable to store user ID
+
+        function getUserId() {
+            var xhr = new XMLHttpRequest();
+            var url = "/whatismyuserid"; // Assuming this endpoint is on the same server
+            xhr.open("GET", url, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    userId = xhr.responseText;
+                    console.log("User ID: " + userId);
+                    getMessages(); // Once user ID is retrieved, get messages
+                }
+            };
+            xhr.send();
+        }
+
+        function getMessages() {
+            var xhr = new XMLHttpRequest();
+            var url = "/second_endpoint";
+            xhr.open("GET", url, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var messages = JSON.parse(xhr.responseText);
+                    console.log(messages)
+                    displayMessages(messages);
+                    scrollToBottom()
+                }
+            };
+            xhr.send();
+        }
+
+        function sendMessage() {
+            var message = document.getElementById("messageInput").value;
+            var xhr = new XMLHttpRequest();
+            var url = "/first_endpoint";
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    getMessages(); // Get messages again after sending the new one
+                    messageInput.value = ''
+                }
+            };
+            xhr.send(message);
+        }
+
+        function displayMessages(messages) {
+            var messagesDiv = document.getElementById("messages");
+            messagesDiv.innerHTML = ''; // Clear previous messages
+            for (var key in messages) {
+                if (messages.hasOwnProperty(key)) {
+                    var messageData = messages[key][0];
+                    var senderId = messageData[0];
+                    var messageContent = messageData[1];
+                    var messageElement = document.createElement("div");
+                    messageElement.classList.add("message-container"); // Add class for styling
+                    messageElement.classList.add(senderId === userId ? "sent-message" : "received-message");
+                    messageElement.innerHTML = "<span class='sender'>" + senderId + ":</span> " + messageContent;
+                    messagesDiv.appendChild(messageElement);
+                }
+            }
+        }
+        function scrollToBottom() {
+            var messagesDiv = document.getElementById("messages");
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        // Call getUserId() when the page loads
+        window.onload = function () {
+            getUserId();
+            setInterval(getMessages, 2000); // 2 saniyede bir getMessages fonksiyonunu çağır
+        };
+    </script>
+</head>
+
+<body>
+    <div style="text-align: center;" class="container">
+        <div id="messages"></div>
+        <div style="display: inline-flex;
+                    margin-top: 2.5%;
+">
+            <p style="
+            width: fit-content;
+        ">
+                <span class="input">
+                    <input type="text" id="messageInput" placeholder="Mesajınızı girin">
+                </span>
+            </p>
+            <button style="
+            width: fit-content;
+            margin-top: 3.5%;
+    margin-left: 5%;
+        " class="button-30" onclick="sendMessage()">Gönder</button>
+        </div>
+    </div>
+</body>
+
+</html>
